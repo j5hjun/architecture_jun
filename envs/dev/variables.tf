@@ -2,10 +2,6 @@ variable "name_prefix" {
   type = string
 }
 
-variable "region" {
-  type = string
-}
-
 variable "vpc_cidr" {
   type = string
 }
@@ -43,4 +39,17 @@ variable "db_password" {
 
 variable "db_name" {
   type = string
+}
+
+variable "eks_cidr" {
+  description = "CIDR block used by EKS cluster for internal communication"
+  type        = string
+}
+
+variable "region" {
+  type = string
+}
+
+variable "domain_name" {
+  type        = string
 }

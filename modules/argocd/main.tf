@@ -1,40 +1,54 @@
-resource "kubernetes_namespace" "argocd" {
-  metadata {
-    name = var.namespace
-  }
-}
-
 resource "helm_release" "argocd" {
   name       = "argocd"
-  chart      = "argo-cd"
-  repository = "https://argoproj.github.io/argo-helm"
   namespace  = var.namespace
-  version    = "5.51.5" # 최신 안정 버전 확인 가능
+  repository = "https://argoproj.github.io/argo-helm"
+  chart      = "argo-cd"
+  version    = "5.46.2"
+
+  create_namespace = true
 
   values = [
-    yamlencode({
-      server = {
-        service = {
-          type = "ClusterIP"
-          ports = {
-            http = 80
-            https = 443
+    file("${path.module}/values.yaml")
+  ]
+}
+
+resource "kubernetes_ingress_v1" "argocd_ingress" {
+  count = var.enable_ingress ? 1 : 0
+
+  metadata {
+    name      = "argocd-ingress"
+    namespace = var.namespace
+
+    annotations = {
+  "kubernetes.io/ingress.class"                    = "alb"
+  "alb.ingress.kubernetes.io/scheme"               = "internet-facing"
+  "alb.ingress.kubernetes.io/target-type"          = "ip"
+  "alb.ingress.kubernetes.io/listen-ports"         = "[{\"HTTPS\": 443}]"
+  "alb.ingress.kubernetes.io/group.name"           = "argocd"
+  "alb.ingress.kubernetes.io/certificate-arn"       = var.certificate_arn
+  }
+  }
+
+  spec {
+    rule {
+      host = "argocd.junjo.kro.kr"
+      http {
+        path {
+          path      = "/"
+          path_type = "Prefix"
+
+          backend {
+            service {
+              name = "argocd-server"
+              port {
+                number = 443
+              }
+            }
           }
-        }
-        ingress = {
-          enabled     = true
-          ingressClassName = "alb"
-          annotations = {
-            "alb.ingress.kubernetes.io/scheme"       = "internet-facing"
-            "alb.ingress.kubernetes.io/target-type"  = "ip"
-            "alb.ingress.kubernetes.io/listen-ports" = "[{\"HTTP\": 80}]"
-          }
-          paths = ["/"]
-          pathType = "Prefix"
         }
       }
-    })
-  ]
+    }
+  }
 
-  depends_on = [kubernetes_namespace.argocd]
+  depends_on = [helm_release.argocd]
 }

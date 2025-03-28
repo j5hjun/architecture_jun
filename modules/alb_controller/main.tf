@@ -40,6 +40,10 @@ resource "kubernetes_service_account" "alb_sa" {
   }
 
   depends_on = [aws_iam_role_policy_attachment.alb_attach]
+
+  lifecycle {
+    prevent_destroy = false
+  }
 }
 
 resource "helm_release" "alb_controller" {

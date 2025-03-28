@@ -18,10 +18,11 @@ resource "aws_db_instance" "this" {
   db_name                 = var.db_name
   vpc_security_group_ids  = [var.db_sg_id]
   db_subnet_group_name    = aws_db_subnet_group.this.name
-  skip_final_snapshot     = true
+  skip_final_snapshot     = false
   publicly_accessible     = false
   multi_az                = false
-
+  final_snapshot_identifier = "${var.name_prefix}-rds-final-snapshot"
+  
   tags = {
     Name = "${var.name_prefix}-rds"
   }

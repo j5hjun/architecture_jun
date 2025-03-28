@@ -1,0 +1,47 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  terraform-destroy:
+    name: Destroy Terraform Infrastructure
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      TF_IN_AUTOMATION: true
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: envs/dev
+
+      - name: Terraform Destroy (ordered)
+        run: |
+          terraform destroy -target module.argocd -auto-approve
+          terraform destroy -target module.alb_controller -auto-approve
+          terraform destroy -target module.route53_records -auto-approve
+          terraform destroy -target module.rds -auto-approve
+          terraform destroy -target module.acm -auto-approve
+          terraform destroy -target module.route53 -auto-approve
+          terraform destroy -target module.eks -auto-approve
+          terraform destroy -target module.vpc -auto-approve
+          terraform destroy -auto-approve
+        working-directory: envs/dev
+
+      - name: ✅ Destroy 완료 메시지
+        run: echo "All infrastructure safely destroyed via GitHub Actions."
