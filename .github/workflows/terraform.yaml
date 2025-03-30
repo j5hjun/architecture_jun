@@ -23,13 +23,12 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.6.6
-      
+
       - name: Decrypt terraform.tfvars
         run: |
           gpg --quiet --batch --yes --decrypt \
             --passphrase="${{ secrets.TFVARS_PASSPHRASE }}" \
             --output envs/dev/terraform.tfvars envs/dev/terraform.tfvars.gpg
-
 
       - name: Terraform Init
         run: terraform init
