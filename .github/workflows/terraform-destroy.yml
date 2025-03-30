@@ -21,6 +21,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Decrypt terraform.tfvars
+        run: |
+          gpg --quiet --batch --yes --decrypt \
+            --passphrase="${{ secrets.TFVARS_PASSPHRASE }}" \
+            --output envs/dev/terraform.tfvars envs/dev/terraform.tfvars.gpg
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
