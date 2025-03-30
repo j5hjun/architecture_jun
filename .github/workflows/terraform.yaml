@@ -1,34 +1,35 @@
-name: Terraform Deploy (Dev)
+name: Deploy Terraform (dev)
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'architecture_jun/envs/dev/**'
+      - 'envs/dev/**'
 
 jobs:
   terraform:
-    name: Terraform Apply (Dev)
+    name: Apply Terraform in envs/dev
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: architecture_jun/envs/dev
+        working-directory: envs/dev
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.5.7
-
+          terraform_version: 1.6.6
+      
       - name: Decrypt terraform.tfvars
         run: |
-            gpg --quiet --batch --yes --decrypt \
-              --passphrase="${{ secrets.TFVARS_PASSPHRASE }}" \
-              --output envs/dev/terraform.tfvars envs/dev/terraform.tfvars.gpg
+          gpg --quiet --batch --yes --decrypt \
+            --passphrase="${{ secrets.TFVARS_PASSPHRASE }}" \
+            --output envs/dev/terraform.tfvars envs/dev/terraform.tfvars.gpg
+
 
       - name: Terraform Init
         run: terraform init
@@ -41,5 +42,3 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
-        env:
-          TF_VAR_example: ${{ secrets.TF_VAR_EXAMPLE }} # 필요한 환경변수 설정
