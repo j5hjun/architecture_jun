@@ -5,3 +5,13 @@ module "backend" {
   create_s3_bucket        = false
   create_dynamodb_table   = false
 }
+
+terraform {
+  backend "s3" {
+    bucket         = "terraform-architecture-jun-state"
+    key            = "envs/dev/terraform.tfstate"
+    region         = "ap-northeast-2"
+    dynamodb_table = "terraform-architecture-jun-lock"
+    encrypt        = true
+  }
+}
